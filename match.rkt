@@ -3,9 +3,10 @@
 (define-syntax test
   (syntax-rules ()
     ((_ expr res)
-     (if (equal? expr res)
+     (let ((r expr))
+     (if (equal? (if (list? r) (car r) r) res)
          (printf "pass~%")
-         (printf "fail~%")))))
+         (printf "fail~%"))))))
 
 (define (? s) (eq? #\? (string-ref (symbol->string s) 0)))
 (define (! s) (eq? #\! (string-ref (symbol->string s) 0)))
@@ -14,7 +15,7 @@
   (define (matchfun p e res cont)
     (if (null? p)
         (if (null? e)
-            `[,res _]
+            `[,res ,cont]
             (cont))
         (cond
           ((? (car p))
@@ -44,7 +45,7 @@
 
 (test
  (match '(A) '(A))
- '[#hash() _])
+ #hash())
 
 (test
  (match '() '(A))
@@ -52,12 +53,12 @@
 
 (test
  (match '(?A) '(B))
- '[#hash((?A . B)) _])
+ #hash((?A . B)))
 
 (test
  (match '(!A) '(B C))
- '[#hash((!A . (B C))) _])
+ #hash((!A . (B C))))
 
 (test
  (match '(!A !A) '(B C B C))
- '[#hash((!A . (B C))) _])
+ #hash((!A . (B C))))
