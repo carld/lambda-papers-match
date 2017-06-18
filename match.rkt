@@ -2,24 +2,41 @@
 
 (define-syntax test
   (syntax-rules ()
-     ((_ expr res)
-      (if (equal? expr res)
-          (printf "pass~%")
-          (printf "fail~%")))))
+    ((_ expr res)
+     (if (equal? expr res)
+         (printf "pass~%")
+         (printf "fail~%")))))
+
+(define (? s) (eq? #\? (string-ref (symbol->string s) 0)))
 
 (define (match pattern expression)
-  (if (null? pattern)
-      (if (null? expression)
-          '[() _]
-          #f)
-       (if (eq? (car pattern) (car expression))
-           (match (cdr pattern) (cdr expression))
-           #f)))
-
-(test
- (match '(A) '(A))
- '[() _])
-
-(test
- (match '() '(A))
- #f)
+  (define (matchfun p e res)
+    (if (null? p)
+        (if (null? e)
+            `[,res _]
+            #f)
+        (cond
+          ((? (car p))
+           (if (hash-has-key? res (car p))
+               (if (eq? (car e) (hash-ref res (car p)))
+                   (matchfun (cdr p) (cdr e))
+                   #f)
+               (matchfun (cdr p) (cdr e) (hash-set res (car p) (car e)))))
+          (else
+           (if (eq? (car p) (car e))
+               (matchfun (cdr p) (cdr e) res)
+               #f)))))
+    
+    (matchfun pattern expression #hash()))
+  
+  (test
+   (match '(A) '(A))
+   '[#hash() _])
+  
+  (test
+   (match '() '(A))
+   #f)
+  
+  (test
+   (match '(?A) '(B))
+   '[#hash((?A . B)) _])
