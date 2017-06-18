@@ -20,6 +20,7 @@
            (cont)))
       (else
        (cond
+         ; one match, but can be anything (provided it can be unified with prior matches)
          ((? (car p))
           (if (> (length e) 0)
               (if (hash-has-key? res (car p))
@@ -28,6 +29,7 @@
                       (cont))
                   (matchfun (cdr p) (cdr e) (hash-set res (car p) (car e)) cont))
               (cont)))
+         ; zero or more matches (provided it can be unified with prior match)
          ((! (car p))
           (if (hash-has-key? res (car p))
               (let ((to-match (hash-ref res (car p))))
@@ -42,6 +44,7 @@
                                                (lambda () (matchn (+ n 1))))
                                      (cont)))))
                 (matchn 0))))
+         ; a literal match
          (else
           (if (eq? (car p) (car e))
               (matchfun (cdr p) (cdr e) res cont)
