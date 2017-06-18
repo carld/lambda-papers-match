@@ -8,7 +8,13 @@
           (display "fail")))))
 
 (define (match pattern expression)
-  #f)
+  (if (null? pattern)
+      '[() _]
+       (if (eq? (car pattern) (car expression))
+           (match (cdr pattern) (cdr expression))
+           #f)))
+
+(display (eq? '[() _] '[() _]))
 
 (test
  (match '(A) '(A))
