@@ -26,8 +26,8 @@
           ((! (car p))
            (if (hash-has-key? res (car p))
                (let ((to-match (hash-ref res (car p))))
-                 (if (eq? to-match (take e (length to-match)))
-                     (matchfun (cdr p) (drop e (length to-match) res cont))
+                 (if (equal? to-match (take e (length to-match)))
+                     (matchfun (cdr p) (drop e (length to-match)) res cont)
                      (cont)))
                (letrec ((matchn (lambda (n)
                                   (matchfun (cdr p)
@@ -56,4 +56,8 @@
 
 (test
  (match '(!A) '(B C))
+ '[#hash((!A . (B C))) _])
+
+(test
+ (match '(!A !A) '(B C B C))
  '[#hash((!A . (B C))) _])
