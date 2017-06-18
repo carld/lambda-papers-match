@@ -3,19 +3,23 @@
 (define-syntax test
   (syntax-rules ()
      ((_ expr res)
-      (if (eq? expr res)
-          (display "pass")
-          (display "fail")))))
+      (if (equal? expr res)
+          (printf "pass~%")
+          (printf "fail~%")))))
 
 (define (match pattern expression)
   (if (null? pattern)
-      '[() _]
+      (if (null? expression)
+          '[() _]
+          #f)
        (if (eq? (car pattern) (car expression))
            (match (cdr pattern) (cdr expression))
            #f)))
 
-(display (eq? '[() _] '[() _]))
-
 (test
  (match '(A) '(A))
  '[() _])
+
+(test
+ (match '() '(A))
+ #f)
