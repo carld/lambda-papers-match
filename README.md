@@ -1,4 +1,4 @@
-# Pattern Matcher with Backtracking for Segment Matches
+# Pattern Matching with Backtracking for Segment Matches
 
 From "Scheme an Interpreter for Extended Lambda Calculus" by Gerald Jay Sussman and Guy Lewis Steele Jr.
 
@@ -6,21 +6,26 @@ From "Scheme an Interpreter for Extended Lambda Calculus" by Gerald Jay Sussman 
 
 Page 10 describes a pattern matching approach that incorporates back tracking.
 
-Veit and I implemented this in DrRacket.
+Veit and I implemented this using DrRacket.
 
-We took an incremental, test driven approach, committing as we reached a stage.
+We took an incremental, test driven approach, committing to revision control (git)
+as we reached completed each step.
 
 ## 1. A testing mechanism
 
-We came up with a basic mechanism for testing an expression against an expected return value. Example usage:
+We came up with a basic mechanism for testing an expression against an expected return value. Example usage of `test`:
 
 ```
 (test
- (match '(A) '(A))   ; an expression
- '[() _])            ; the expected result
+  (match
+    '(A)    ; pattern argument
+    '(A)    ; expression argument
+  )
+  '[() _]   ; the expected result
+)
 ```
 
-Our implementation of `test` was in the form of a macro that would expand into a conditional statement:
+Our implementation of `test` came in the form of a macro that would expand into a conditional statement:
 
 ```
 (define-syntax test
@@ -35,15 +40,19 @@ Next we started implementing `match`.
 
 ## 2. Matching a literal
 
+A literal match is where the pattern specifies exactly the value to match.
+
 To begin with we want the following test case to pass:
 
 ```
-(test
- (match '(A) '(A))
- '[() _])
+(test        ; test macro
+  (match     ; match function call
+    '(A)     ; pattern argument
+    '(A))    ; expression argument
+  '[() _])   ; expected non false return value
 ```
 
-The expected return value `[() _]` is obtuse. It is a list of two things, the first an empty list, the second, anything. Ultimately we want the first thing to contain names and values of matching expressions, the second to indicate a function that can be called to retrieve the next possible match where there may be more than one for the given pattern. For now, consider this return value "for future use". These two not required for matching literals, which result in a true or false, `#f`, result.
+*The expected return value `[() _]` is obtuse here. It is a list of two things, the first an empty list, the second, anything. Ultimately we want the first thing to contain names and values of matching expressions, the second to indicate a function that can be called to retrieve the next possible match where there may be more than one for the given pattern. For now consider the structure of this return value "for future use". It's not required for matching literals, which result in a true or false result.*
 
 We came up with an initial `match` function that would pass the test:
 
@@ -87,6 +96,7 @@ We also were careful to check that matching an empty pattern against a non-empty
 ## 3. Match a single element and return the value of that element
 
 Next we implementing matching a single element of any value.
+
 In the pattern this kind of match is represented by a symbol prefixed with a question mark `?`. It means match one element exactly one time, but it doesn't matter what the element is.
 
 The symbol including the question mark becomes the name associated with the value that is matched.
@@ -95,16 +105,24 @@ Our test looked like this:
 
 ```
 (test
-   (match '(?A) '(B))
-   '[#hash((?A . B)) _])
+  (match
+    '(?A) '(B))
+  '[#hash((?A . B)) _])
 ```
 
+_In Racket, a hash map can be created with convenience syntax, `#hash((key . value))`_
+
 The pattern above says `?A` must match one element that can be anything. The return value of match must show `?A` and the value it matched. In this case `?A` matches one thing, and that thing is `B`.
+
+The return value in the above test contains a hash with a key `?A` and value `B`.
 
 First we came up with a predicate function to determine if a pattern element is prefixed with a question mark.
 
 ```
-(define (? s) (eq? #\? (string-ref (symbol->string s) 0)))
+(define (? s)
+  (eq?
+    #\?
+    (string-ref (symbol->string s) 0)))
 ```
 
 We then added to our `match` function the condition to check to see if the current pattern element, that is the first element in the pattern, `(car p)`, is a single element matcher.
@@ -122,21 +140,25 @@ When the end of the pattern and expression is reached and there are no
 elements left in `p` or `e` (they are both null),
 `res` becomes the first element in the successful return value from `matchfun`.
 
-There's a very important aspect to a non-literal match,
-if our pattern contains more than one instance of this kind of match,
-they should all represent the same value.
+There's a very important aspect to a non-literal match:
+if the pattern contains more than one instance of a named match,
+all occurrences must have the same value.
 
 Another of looking at this aspect is through the following two test cases,
 ask yourself which one will pass and which will fail?
 
 ```
 (test
- (match '(?A ?A) '(B B))
- '[#hash((?A . B)) _])
+  (match
+    '(?A ?A)             ; pattern with two occurrences of a named match
+    '(B B))              ; expression
+  '[#hash((?A . B)) _])
 
 (test
- (match '(?A ?A) '(B C))
- '[#hash((?A . B)) _])
+  (match
+    '(?A ?A)
+    '(B C))
+  '[#hash((?A . B)) _])
 ```
 
 If you said the first one will pass, and the second one will fail, you are right!
@@ -168,4 +190,42 @@ Our implementation of `match` now looked like:
                #f)))))
 ```
 
+We had to look up the hash functions in Racket documentation:
+[hash-has-key?](https://docs.racket-lang.org/reference/hashtables.html#%28def._%28%28lib._racket%2Fprivate%2Fmore-scheme..rkt%29._hash-has-key~3f%29%29),
+[hash-ref](https://docs.racket-lang.org/reference/hashtables.html#%28def._%28%28quote._~23~25kernel%29._hash-ref%29%29),
+[hash-set](https://docs.racket-lang.org/reference/hashtables.html#%28def._%28%28quote._~23~25kernel%29._hash-set%29%29)
+
+
 ## 4. Match a segment
+
+The next and final stage is to implement a segment match.
+A segment match means a match of zero or more elements.
+
+The convention for this matcher is to prefix it with an exclamation mark `!`
+(we called it a bang).
+For example a matcher for zero or more elements in the pattern could
+be `!A`.
+
+We came up with a simple test:
+
+```
+(test
+  (match
+    '(!A)                       ; a named segment match
+    '(B C))                     ; expression
+  '[#hash((!A . (B C))) _] )    ; expected match result
+```
+
+Because a segment match is zero or more elements, `!A` should match the entire expression, `(B C)`.
+
+First, we needed a predicate function to check for a `!` prefix.
+It's more or less the same as the one we used for `?` prefixes.
+
+```
+  (define (! s)
+    (eq?
+      #\!
+      (string-ref (symbol->string s) 0)))
+```
+
+Next we have to come up with a way to match zero or more elements.
