@@ -60,7 +60,7 @@ If the pattern is null (an empty list), compare to the expression. If the expres
 
 If the patten is not an empty list, compare the first element of the pattern list to the first element of the expression list, if they are equal call `match` again to compare the rest of the pattern with the rest of the expression, otherwise return false.
 
-The summary is we compare each element of the pattern list with each element of the expression list, until the end. If the two lists are different false is returned.
+The summary is we compare each element of the pattern list with each element of the expression list, until the end. If the two lists are different false is returned. The end point is where there are no elements left in either the pattern list or the expression list, and `'[() _]'` is returned.
 
 In DrRacket on OSX, we ran what we have so run by pressing '&#8984; r' (command r on Mac).
 
