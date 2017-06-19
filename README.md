@@ -95,7 +95,7 @@ We also were careful to check that matching an empty pattern against a non-empty
 
 ## 3. Match a single element and return the value of that element
 
-Next we implementing matching a single element of any value.
+Next we implemented matching a single element of any value.
 
 In the pattern this kind of match is represented by a symbol prefixed with a question mark `?`. It means match one element exactly one time, but it doesn't matter what the element is.
 
@@ -141,8 +141,8 @@ elements left in `p` or `e` (they are both null),
 `res` becomes the first element in the successful return value from `matchfun`.
 
 There's a very important aspect to a non-literal match:
-if the pattern contains more than one instance of a named match,
-all occurrences must have the same value.
+if the pattern contains more than one occurrence of the same named match,
+all occurrences must have the same value consistently.
 
 Another of looking at this aspect is through the following two test cases,
 ask yourself which one will pass and which will fail?
@@ -229,3 +229,11 @@ It's more or less the same as the one we used for `?` prefixes.
 ```
 
 Next we have to come up with a way to match zero or more elements.
+
+This is where backtracking comes in.
+
+A function is provided that will be called a match fails. This could be
+because a literal constant failed to match, or either the pattern or expression
+ran out of elements.
+
+[To be continued...]
