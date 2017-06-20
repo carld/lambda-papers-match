@@ -9,7 +9,7 @@ Page 10 describes a pattern matching approach that incorporates back tracking.
 Veit and I implemented this using DrRacket.
 
 We took an incremental, test driven approach, committing to revision control (git)
-as we reached completed each step.
+as we reached each step.
 
 ## 1. A testing mechanism
 
@@ -73,7 +73,7 @@ If the pattern is null (an empty list), compare to the expression. If the expres
 
 If the patten is not an empty list, compare the first element of the pattern list to the first element of the expression list, if they are equal call `match` again to compare the rest of the pattern with the rest of the expression, otherwise return false.
 
-In DrRacket on OSX, we ran what we have so run by pressing '&#8984; r' (command r on Mac).
+In DrRacket on OS X, we ran what we have so run by pressing '&#8984; r' (command r on Mac).
 
 ```
 Welcome to DrRacket, version 6.5 [3m].
@@ -110,7 +110,7 @@ Our test looked like this:
   '[#hash((?A . B)) _])
 ```
 
-_In Racket, a hash map can be created with convenience syntax, `#hash((key . value))`_
+_In Racket, a hash map can be created with convenience syntax (e.g. `#hash((key . value))`)._
 
 The pattern above says `?A` must match one element that can be anything. The return value of match must show `?A` and the value it matched. In this case `?A` matches one thing, and that thing is `B`.
 
@@ -190,7 +190,7 @@ Our implementation of `match` now looked like:
                #f)))))
 ```
 
-We had to look up the hash functions in Racket documentation:
+We had to look up a few hash functions in Racket documentation:
 [hash-has-key?](https://docs.racket-lang.org/reference/hashtables.html#%28def._%28%28lib._racket%2Fprivate%2Fmore-scheme..rkt%29._hash-has-key~3f%29%29),
 [hash-ref](https://docs.racket-lang.org/reference/hashtables.html#%28def._%28%28quote._~23~25kernel%29._hash-ref%29%29),
 [hash-set](https://docs.racket-lang.org/reference/hashtables.html#%28def._%28%28quote._~23~25kernel%29._hash-set%29%29)
@@ -267,6 +267,6 @@ If the expression has as many or more elements than the number it's provided,
 it carries on, calling `matchfun` with the named pattern assigned to that segment (length n) of expression.
 It supplies a a continuation that will call `matchn` again with a longer segment.
 
-Otherwise it will continue by calling `(cont),
-which with either be a call to `matchn` with the shorter segment (effectively n - 1),
+Otherwise it will continue by calling `(cont)`,
+which with either be a call to `matchn` with the shorter segment (effectively `n - 1`),
 or the initial continuation which simply returns false.
