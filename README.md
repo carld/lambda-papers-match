@@ -236,4 +236,37 @@ A function is provided that will be called a match fails. This could be
 because a literal constant failed to match, or either the pattern or expression
 ran out of elements.
 
-[To be continued...]
+The initial implementation of the `cont` function just returns false:
+
+```
+(matchfun
+  pattern
+  expression
+  #hash()
+  (lambda () #f)    ; continuation function returns false
+)
+```
+
+A new function, `matchn` is introduced to try matching n number of elements, that is, a segment of length n.
+
+```
+(letrec ((matchn (lambda (n)
+            (if (>= (length e) n)
+                (matchfun (cdr p)                           ; tail of the pattern
+                          (drop e n)                        ; tail of the expression minus the first n elements
+                          (hash-set res (car p) (take e n)) ; hash with head of pattern matched to first n elements of expression
+                          (lambda () (matchn (+ n 1))))     ; attempt to match a longer segment of expression
+                (cont)))))                                  ; continue, with previous shorter segment
+  (matchn 0))
+```
+
+The `matchn` function attempts to match the number of elements provided
+by it's single argument.
+
+If the expression has as many or more elements than the number it's provided,
+it carries on, calling `matchfun` with the named pattern assigned to that segment (length n) of expression.
+It supplies a a continuation that will call `matchn` again with a longer segment.
+
+Otherwise it will continue by calling `(cont),
+which with either be a call to `matchn` with the shorter segment (effectively n - 1),
+or the initial continuation which simply returns false.
